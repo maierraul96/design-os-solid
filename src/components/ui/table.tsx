@@ -1,106 +1,121 @@
-"use client"
+import { splitProps, type JSX, type ParentComponent } from 'solid-js'
+import { cn } from '@/lib/utils'
 
-import * as React from "react"
-
-import { cn } from "@/lib/utils"
-
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+const Table: ParentComponent<JSX.TableHTMLAttributes<HTMLTableElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
-    <div
-      data-slot="table-container"
-      className="relative w-full overflow-x-auto"
-    >
+    <div data-slot="table-container" class="relative w-full overflow-x-auto">
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
-        {...props}
-      />
+        class={cn('w-full caption-bottom text-sm', local.class)}
+        {...others}
+      >
+        {local.children}
+      </table>
     </div>
   )
 }
 
-function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
+const TableHeader: ParentComponent<JSX.HTMLAttributes<HTMLTableSectionElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
-      {...props}
-    />
+      class={cn('[&_tr]:border-b', local.class)}
+      {...others}
+    >
+      {local.children}
+    </thead>
   )
 }
 
-function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
+const TableBody: ParentComponent<JSX.HTMLAttributes<HTMLTableSectionElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
     <tbody
       data-slot="table-body"
-      className={cn("[&_tr:last-child]:border-0", className)}
-      {...props}
-    />
+      class={cn('[&_tr:last-child]:border-0', local.class)}
+      {...others}
+    >
+      {local.children}
+    </tbody>
   )
 }
 
-function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
+const TableFooter: ParentComponent<JSX.HTMLAttributes<HTMLTableSectionElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
     <tfoot
       data-slot="table-footer"
-      className={cn(
-        "bg-muted/50 border-t font-medium [&>tr]:last:border-b-0",
-        className
+      class={cn(
+        'bg-muted/50 border-t font-medium [&>tr]:last:border-b-0',
+        local.class
       )}
-      {...props}
-    />
+      {...others}
+    >
+      {local.children}
+    </tfoot>
   )
 }
 
-function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
+const TableRow: ParentComponent<JSX.HTMLAttributes<HTMLTableRowElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
     <tr
       data-slot="table-row"
-      className={cn(
-        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
-        className
+      class={cn(
+        'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
+        local.class
       )}
-      {...props}
-    />
+      {...others}
+    >
+      {local.children}
+    </tr>
   )
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+const TableHead: ParentComponent<JSX.ThHTMLAttributes<HTMLTableCellElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
     <th
       data-slot="table-head"
-      className={cn(
-        "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-        className
+      class={cn(
+        'text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+        local.class
       )}
-      {...props}
-    />
+      {...others}
+    >
+      {local.children}
+    </th>
   )
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+const TableCell: ParentComponent<JSX.TdHTMLAttributes<HTMLTableCellElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
     <td
       data-slot="table-cell"
-      className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-        className
+      class={cn(
+        'p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+        local.class
       )}
-      {...props}
-    />
+      {...others}
+    >
+      {local.children}
+    </td>
   )
 }
 
-function TableCaption({
-  className,
-  ...props
-}: React.ComponentProps<"caption">) {
+const TableCaption: ParentComponent<JSX.HTMLAttributes<HTMLTableCaptionElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
     <caption
       data-slot="table-caption"
-      className={cn("text-muted-foreground mt-4 text-sm", className)}
-      {...props}
-    />
+      class={cn('text-muted-foreground mt-4 text-sm', local.class)}
+      {...others}
+    >
+      {local.children}
+    </caption>
   )
 }
 

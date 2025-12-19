@@ -1,5 +1,6 @@
-import { FileText, Map, ClipboardList, Database, Layout, Package, Boxes, Palette, PanelLeft } from 'lucide-react'
+import { FileText, Map, ClipboardList, Database, Layout, Package, Boxes, Palette, PanelLeft } from 'lucide-solid'
 import { Card, CardContent } from '@/components/ui/card'
+import type { Component } from 'solid-js'
 
 type EmptyStateType = 'overview' | 'roadmap' | 'spec' | 'data' | 'screen-designs' | 'data-model' | 'design-system' | 'shell' | 'export'
 
@@ -8,7 +9,7 @@ interface EmptyStateProps {
 }
 
 const config: Record<EmptyStateType, {
-  icon: typeof FileText
+  icon: Component<{ class?: string; 'stroke-width'?: number }>
   title: string
   command: string
   description: string
@@ -69,28 +70,29 @@ const config: Record<EmptyStateType, {
   },
 }
 
-export function EmptyState({ type }: EmptyStateProps) {
-  const { icon: Icon, title, command, description } = config[type]
+export function EmptyState(props: EmptyStateProps) {
+  const cfg = () => config[props.type]
+  const Icon = () => cfg().icon
 
   return (
-    <Card className="border-stone-200 dark:border-stone-700 shadow-sm border-dashed">
-      <CardContent className="py-8">
-        <div className="flex flex-col items-center text-center max-w-sm mx-auto">
-          <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mb-3">
-            <Icon className="w-5 h-5 text-stone-400 dark:text-stone-500" strokeWidth={1.5} />
+    <Card class="border-stone-200 dark:border-stone-700 shadow-sm border-dashed">
+      <CardContent class="py-8">
+        <div class="flex flex-col items-center text-center max-w-sm mx-auto">
+          <div class="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mb-3">
+            <Icon class="w-5 h-5 text-stone-400 dark:text-stone-500" stroke-width={1.5} />
           </div>
-          <h3 className="text-base font-medium text-stone-600 dark:text-stone-400 mb-1">
-            {title}
+          <h3 class="text-base font-medium text-stone-600 dark:text-stone-400 mb-1">
+            {cfg().title}
           </h3>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mb-4">
-            {description}
+          <p class="text-sm text-stone-500 dark:text-stone-400 mb-4">
+            {cfg().description}
           </p>
-          <div className="bg-stone-100 dark:bg-stone-800 rounded-md px-4 py-2.5 w-full">
-            <p className="text-xs text-stone-500 dark:text-stone-400 mb-0.5">
+          <div class="bg-stone-100 dark:bg-stone-800 rounded-md px-4 py-2.5 w-full">
+            <p class="text-xs text-stone-500 dark:text-stone-400 mb-0.5">
               Run in Claude Code:
             </p>
-            <code className="text-sm font-mono text-stone-700 dark:text-stone-300">
-              {command}
+            <code class="text-sm font-mono text-stone-700 dark:text-stone-300">
+              {cfg().command}
             </code>
           </div>
         </div>

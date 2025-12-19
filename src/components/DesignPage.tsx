@@ -1,12 +1,12 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { createMemo, Show, For } from 'solid-js'
+import { A } from '@solidjs/router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AppLayout } from '@/components/AppLayout'
 import { EmptyState } from '@/components/EmptyState'
 import { StepIndicator, type StepStatus } from '@/components/StepIndicator'
 import { NextPhaseButton } from '@/components/NextPhaseButton'
 import { loadProductData } from '@/lib/product-loader'
-import { ChevronRight, Layout } from 'lucide-react'
+import { ChevronRight, Layout } from 'lucide-solid'
 
 // Map Tailwind color names to actual color values for preview
 const colorMap: Record<string, { light: string; base: string; dark: string }> = {
@@ -34,24 +34,18 @@ const colorMap: Record<string, { light: string; base: string; dark: string }> = 
   stone: { light: '#d6d3d1', base: '#78716c', dark: '#57534e' },
 }
 
-/**
- * Determine the status of each step on the Design page
- * Steps: 1. Design Tokens, 2. Shell Design
- */
 function getDesignPageStepStatuses(
   hasDesignSystem: boolean,
   hasShell: boolean
 ): StepStatus[] {
   const statuses: StepStatus[] = []
 
-  // Step 1: Design Tokens
   if (hasDesignSystem) {
     statuses.push('completed')
   } else {
     statuses.push('current')
   }
 
-  // Step 2: Shell
   if (hasShell) {
     statuses.push('completed')
   } else if (hasDesignSystem) {
@@ -63,188 +57,167 @@ function getDesignPageStepStatuses(
   return statuses
 }
 
-export function DesignPage() {
-  const productData = useMemo(() => loadProductData(), [])
-  const designSystem = productData.designSystem
-  const shell = productData.shell
+export default function DesignPage() {
+  const productData = createMemo(() => loadProductData())
+  const designSystem = () => productData().designSystem
+  const shell = () => productData().shell
 
-  const hasDesignSystem = !!(designSystem?.colors || designSystem?.typography)
-  const hasShell = !!shell?.spec
-  const allStepsComplete = hasDesignSystem && hasShell
+  const hasDesignSystem = () => !!(designSystem()?.colors || designSystem()?.typography)
+  const hasShell = () => !!shell()?.spec
+  const allStepsComplete = () => hasDesignSystem() && hasShell()
 
-  const stepStatuses = getDesignPageStepStatuses(hasDesignSystem, hasShell)
+  const stepStatuses = () => getDesignPageStepStatuses(hasDesignSystem(), hasShell())
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        {/* Page intro */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
+      <div class="space-y-6">
+        <div class="mb-8">
+          <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
             Design System
           </h1>
-          <p className="text-stone-600 dark:text-stone-400">
+          <p class="text-stone-600 dark:text-stone-400">
             Define the visual foundation and application shell for your product.
           </p>
         </div>
 
-        {/* Step 1: Design Tokens */}
-        <StepIndicator step={1} status={stepStatuses[0]}>
-          {!designSystem?.colors && !designSystem?.typography ? (
-            <EmptyState type="design-system" />
-          ) : (
-            <Card className="border-stone-200 dark:border-stone-700 shadow-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+        <StepIndicator step={1} status={stepStatuses()[0]}>
+          <Show when={designSystem()?.colors || designSystem()?.typography} fallback={<EmptyState type="design-system" />}>
+            <Card class="border-stone-200 dark:border-stone-700 shadow-sm">
+              <CardHeader class="pb-4">
+                <CardTitle class="text-lg font-semibold text-stone-900 dark:text-stone-100">
                   Design Tokens
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Colors */}
-                {designSystem?.colors && (
-                  <div>
-                    <h4 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-4">
-                      Colors
-                    </h4>
-                    <div className="grid grid-cols-3 gap-6">
-                      <ColorSwatch
-                        label="Primary"
-                        colorName={designSystem.colors.primary}
-                      />
-                      <ColorSwatch
-                        label="Secondary"
-                        colorName={designSystem.colors.secondary}
-                      />
-                      <ColorSwatch
-                        label="Neutral"
-                        colorName={designSystem.colors.neutral}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Typography */}
-                {designSystem?.typography && (
-                  <div>
-                    <h4 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-4">
-                      Typography
-                    </h4>
-                    <div className="grid grid-cols-3 gap-6">
-                      <div>
-                        <p className="text-xs text-stone-500 dark:text-stone-400 mb-1">Heading</p>
-                        <p className="font-semibold text-stone-900 dark:text-stone-100">
-                          {designSystem.typography.heading}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-stone-500 dark:text-stone-400 mb-1">Body</p>
-                        <p className="text-stone-900 dark:text-stone-100">
-                          {designSystem.typography.body}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-stone-500 dark:text-stone-400 mb-1">Mono</p>
-                        <p className="font-mono text-stone-900 dark:text-stone-100">
-                          {designSystem.typography.mono}
-                        </p>
+              <CardContent class="space-y-6">
+                <Show when={designSystem()?.colors}>
+                  {(colors) => (
+                    <div>
+                      <h4 class="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-4">
+                        Colors
+                      </h4>
+                      <div class="grid grid-cols-3 gap-6">
+                        <ColorSwatch label="Primary" colorName={colors().primary} />
+                        <ColorSwatch label="Secondary" colorName={colors().secondary} />
+                        <ColorSwatch label="Neutral" colorName={colors().neutral} />
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </Show>
 
-                {/* Edit hint */}
-                <div className="bg-stone-100 dark:bg-stone-800 rounded-md px-4 py-2.5">
-                  <p className="text-xs text-stone-500 dark:text-stone-400">
-                    Run <code className="font-mono text-stone-700 dark:text-stone-300">/design-tokens</code> to update
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </StepIndicator>
-
-        {/* Step 2: Application Shell */}
-        <StepIndicator step={2} status={stepStatuses[1]} isLast={!allStepsComplete}>
-          {!shell?.spec ? (
-            <EmptyState type="shell" />
-          ) : (
-            <Card className="border-stone-200 dark:border-stone-700 shadow-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-                  Application Shell
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Overview */}
-                {shell.spec.overview && (
-                  <p className="text-stone-600 dark:text-stone-400 leading-relaxed">
-                    {shell.spec.overview}
-                  </p>
-                )}
-
-                {/* Navigation items */}
-                {shell.spec.navigationItems.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-2">
-                      Navigation
-                    </h4>
-                    <ul className="space-y-1">
-                      {shell.spec.navigationItems.map((item, index) => {
-                        // Parse markdown-style bold: **text** → <strong>text</strong>
-                        const parts = item.split(/\*\*([^*]+)\*\*/)
-                        return (
-                          <li key={index} className="flex items-center gap-2 text-stone-700 dark:text-stone-300">
-                            <span className="w-1 h-1 rounded-full bg-stone-400 dark:bg-stone-500" />
-                            {parts.map((part, i) =>
-                              i % 2 === 1 ? (
-                                <strong key={i} className="font-semibold">{part}</strong>
-                              ) : (
-                                <span key={i}>{part}</span>
-                              )
-                            )}
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
-                )}
-
-                {/* View Shell Design Link */}
-                {shell.hasComponents && (
-                  <div className="pt-2 border-t border-stone-100 dark:border-stone-800">
-                    <Link
-                      to="/shell/design"
-                      className="flex items-center justify-between gap-4 py-2 hover:text-stone-900 dark:hover:text-stone-100 transition-colors group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-md bg-stone-200 dark:bg-stone-700 flex items-center justify-center">
-                          <Layout className="w-4 h-4 text-stone-600 dark:text-stone-300" strokeWidth={1.5} />
+                <Show when={designSystem()?.typography}>
+                  {(typography) => (
+                    <div>
+                      <h4 class="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-4">
+                        Typography
+                      </h4>
+                      <div class="grid grid-cols-3 gap-6">
+                        <div>
+                          <p class="text-xs text-stone-500 dark:text-stone-400 mb-1">Heading</p>
+                          <p class="font-semibold text-stone-900 dark:text-stone-100">
+                            {typography().heading}
+                          </p>
                         </div>
-                        <span className="font-medium text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-100">
-                          View Shell Design
-                        </span>
+                        <div>
+                          <p class="text-xs text-stone-500 dark:text-stone-400 mb-1">Body</p>
+                          <p class="text-stone-900 dark:text-stone-100">
+                            {typography().body}
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-xs text-stone-500 dark:text-stone-400 mb-1">Mono</p>
+                          <p class="font-mono text-stone-900 dark:text-stone-100">
+                            {typography().mono}
+                          </p>
+                        </div>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-stone-400 dark:text-stone-500" strokeWidth={1.5} />
-                    </Link>
-                  </div>
-                )}
+                    </div>
+                  )}
+                </Show>
 
-                {/* Edit hint */}
-                <div className="bg-stone-100 dark:bg-stone-800 rounded-md px-4 py-2.5">
-                  <p className="text-xs text-stone-500 dark:text-stone-400">
-                    Run <code className="font-mono text-stone-700 dark:text-stone-300">/design-shell</code> to update
+                <div class="bg-stone-100 dark:bg-stone-800 rounded-md px-4 py-2.5">
+                  <p class="text-xs text-stone-500 dark:text-stone-400">
+                    Run <code class="font-mono text-stone-700 dark:text-stone-300">/design-tokens</code> to update
                   </p>
                 </div>
               </CardContent>
             </Card>
-          )}
+          </Show>
         </StepIndicator>
 
-        {/* Next Phase Button - shown when all steps complete */}
-        {allStepsComplete && (
+        <StepIndicator step={2} status={stepStatuses()[1]} isLast={!allStepsComplete()}>
+          <Show when={shell()?.spec} fallback={<EmptyState type="shell" />}>
+            {(spec) => (
+              <Card class="border-stone-200 dark:border-stone-700 shadow-sm">
+                <CardHeader class="pb-4">
+                  <CardTitle class="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                    Application Shell
+                  </CardTitle>
+                </CardHeader>
+                <CardContent class="space-y-4">
+                  <Show when={spec().overview}>
+                    <p class="text-stone-600 dark:text-stone-400 leading-relaxed">
+                      {spec().overview}
+                    </p>
+                  </Show>
+
+                  <Show when={spec().navigationItems.length > 0}>
+                    <div>
+                      <h4 class="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-2">
+                        Navigation
+                      </h4>
+                      <ul class="space-y-1">
+                        <For each={spec().navigationItems}>
+                          {(item) => {
+                            const parts = item.split(/\*\*([^*]+)\*\*/)
+                            return (
+                              <li class="flex items-center gap-2 text-stone-700 dark:text-stone-300">
+                                <span class="w-1 h-1 rounded-full bg-stone-400 dark:bg-stone-500" />
+                                <For each={parts}>
+                                  {(part, i) => i() % 2 === 1 ? <strong class="font-semibold">{part}</strong> : <span>{part}</span>}
+                                </For>
+                              </li>
+                            )
+                          }}
+                        </For>
+                      </ul>
+                    </div>
+                  </Show>
+
+                  <Show when={shell()?.hasComponents}>
+                    <div class="pt-2 border-t border-stone-100 dark:border-stone-800">
+                      <A
+                        href="/shell/design"
+                        class="flex items-center justify-between gap-4 py-2 hover:text-stone-900 dark:hover:text-stone-100 transition-colors group"
+                      >
+                        <div class="flex items-center gap-3">
+                          <div class="w-8 h-8 rounded-md bg-stone-200 dark:bg-stone-700 flex items-center justify-center">
+                            <Layout class="w-4 h-4 text-stone-600 dark:text-stone-300" stroke-width={1.5} />
+                          </div>
+                          <span class="font-medium text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-100">
+                            View Shell Design
+                          </span>
+                        </div>
+                        <ChevronRight class="w-4 h-4 text-stone-400 dark:text-stone-500" stroke-width={1.5} />
+                      </A>
+                    </div>
+                  </Show>
+
+                  <div class="bg-stone-100 dark:bg-stone-800 rounded-md px-4 py-2.5">
+                    <p class="text-xs text-stone-500 dark:text-stone-400">
+                      Run <code class="font-mono text-stone-700 dark:text-stone-300">/design-shell</code> to update
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </Show>
+        </StepIndicator>
+
+        <Show when={allStepsComplete()}>
           <StepIndicator step={3} status="current" isLast>
             <NextPhaseButton nextPhase="sections" />
           </StepIndicator>
-        )}
+        </Show>
       </div>
     </AppLayout>
   )
@@ -255,30 +228,30 @@ interface ColorSwatchProps {
   colorName: string
 }
 
-function ColorSwatch({ label, colorName }: ColorSwatchProps) {
-  const colors = colorMap[colorName] || colorMap.stone
+function ColorSwatch(props: ColorSwatchProps) {
+  const colors = () => colorMap[props.colorName] || colorMap.stone
 
   return (
     <div>
-      <div className="flex gap-0.5 mb-2">
+      <div class="flex gap-0.5 mb-2">
         <div
-          className="flex-1 h-14 rounded-l-md"
-          style={{ backgroundColor: colors.light }}
-          title={`${colorName}-300`}
+          class="flex-1 h-14 rounded-l-md"
+          style={{ "background-color": colors().light }}
+          title={`${props.colorName}-300`}
         />
         <div
-          className="flex-[2] h-14"
-          style={{ backgroundColor: colors.base }}
-          title={`${colorName}-500`}
+          class="flex-[2] h-14"
+          style={{ "background-color": colors().base }}
+          title={`${props.colorName}-500`}
         />
         <div
-          className="flex-1 h-14 rounded-r-md"
-          style={{ backgroundColor: colors.dark }}
-          title={`${colorName}-600`}
+          class="flex-1 h-14 rounded-r-md"
+          style={{ "background-color": colors().dark }}
+          title={`${props.colorName}-600`}
         />
       </div>
-      <p className="text-sm font-medium text-stone-900 dark:text-stone-100">{label}</p>
-      <p className="text-xs text-stone-500 dark:text-stone-400">{colorName}</p>
+      <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{props.label}</p>
+      <p class="text-xs text-stone-500 dark:text-stone-400">{props.colorName}</p>
     </div>
   )
 }

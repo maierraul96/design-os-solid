@@ -1,52 +1,72 @@
-"use client"
+import { splitProps, type JSX, type ParentComponent, createSignal, Show } from 'solid-js'
+import { cn } from '@/lib/utils'
 
-import * as React from "react"
-import * as AvatarPrimitive from "@radix-ui/react-avatar"
-
-import { cn } from "@/lib/utils"
-
-function Avatar({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Root>) {
+const Avatar: ParentComponent<JSX.HTMLAttributes<HTMLSpanElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
-    <AvatarPrimitive.Root
+    <span
       data-slot="avatar"
-      className={cn(
-        "relative flex size-8 shrink-0 overflow-hidden rounded-full",
-        className
+      class={cn(
+        'relative flex size-8 shrink-0 overflow-hidden rounded-full',
+        local.class
       )}
-      {...props}
-    />
+      {...others}
+    >
+      {local.children}
+    </span>
   )
 }
 
-function AvatarImage({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+interface AvatarImageProps extends JSX.ImgHTMLAttributes<HTMLImageElement> {
+  onLoadingStatusChange?: (status: 'loading' | 'loaded' | 'error') => void
+}
+
+const AvatarImage = (props: AvatarImageProps) => {
+  const [local, others] = splitProps(props, ['class', 'onLoadingStatusChange', 'onLoad', 'onError'])
+  const [status, setStatus] = createSignal<'loading' | 'loaded' | 'error'>('loading')
+
+  const handleLoad: JSX.EventHandler<HTMLImageElement, Event> = (e) => {
+    setStatus('loaded')
+    local.onLoadingStatusChange?.('loaded')
+    if (typeof local.onLoad === 'function') {
+      local.onLoad(e)
+    }
+  }
+
+  const handleError: JSX.EventHandler<HTMLImageElement, Event> = (e) => {
+    setStatus('error')
+    local.onLoadingStatusChange?.('error')
+    if (typeof local.onError === 'function') {
+      local.onError(e)
+    }
+  }
+
   return (
-    <AvatarPrimitive.Image
-      data-slot="avatar-image"
-      className={cn("aspect-square size-full", className)}
-      {...props}
-    />
+    <Show when={status() !== 'error'}>
+      <img
+        data-slot="avatar-image"
+        class={cn('aspect-square size-full', local.class)}
+        onLoad={handleLoad}
+        onError={handleError}
+        {...others}
+      />
+    </Show>
   )
 }
 
-function AvatarFallback({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+const AvatarFallback: ParentComponent<JSX.HTMLAttributes<HTMLSpanElement>> = (props) => {
+  const [local, others] = splitProps(props, ['class', 'children'])
   return (
-    <AvatarPrimitive.Fallback
+    <span
       data-slot="avatar-fallback"
-      className={cn(
-        "bg-muted flex size-full items-center justify-center rounded-full",
-        className
+      class={cn(
+        'bg-muted flex size-full items-center justify-center rounded-full',
+        local.class
       )}
-      {...props}
-    />
+      {...others}
+    >
+      {local.children}
+    </span>
   )
 }
 

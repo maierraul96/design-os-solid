@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom'
+import { A } from '@solidjs/router'
+import { For } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChevronRight, Layout } from 'lucide-react'
+import { ChevronRight, Layout } from 'lucide-solid'
 import { EmptyState } from '@/components/EmptyState'
 import type { ScreenDesignInfo } from '@/types/section'
 
@@ -9,39 +10,41 @@ interface ScreenDesignsCardProps {
   sectionId: string
 }
 
-export function ScreenDesignsCard({ screenDesigns, sectionId }: ScreenDesignsCardProps) {
+export function ScreenDesignsCard(props: ScreenDesignsCardProps) {
   // Empty state
-  if (screenDesigns.length === 0) {
+  if (props.screenDesigns.length === 0) {
     return <EmptyState type="screen-designs" />
   }
 
   return (
-    <Card className="border-stone-200 dark:border-stone-700 shadow-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+    <Card class="border-stone-200 dark:border-stone-700 shadow-sm">
+      <CardHeader class="pb-4">
+        <CardTitle class="text-lg font-semibold text-stone-900 dark:text-stone-100">
           Screen Designs
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
-        <ul className="divide-y divide-stone-200 dark:divide-stone-700">
-          {screenDesigns.map((screenDesign) => (
-            <li key={screenDesign.name}>
-              <Link
-                to={`/sections/${sectionId}/screen-designs/${screenDesign.name}`}
-                className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-md bg-stone-200 dark:bg-stone-700 flex items-center justify-center shrink-0">
-                    <Layout className="w-4 h-4 text-stone-600 dark:text-stone-300" strokeWidth={1.5} />
+      <CardContent class="p-0">
+        <ul class="divide-y divide-stone-200 dark:divide-stone-700">
+          <For each={props.screenDesigns}>
+            {(screenDesign) => (
+              <li>
+                <A
+                  href={`/sections/${props.sectionId}/screen-designs/${screenDesign.name}`}
+                  class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
+                >
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-8 h-8 rounded-md bg-stone-200 dark:bg-stone-700 flex items-center justify-center shrink-0">
+                      <Layout class="w-4 h-4 text-stone-600 dark:text-stone-300" stroke-width={1.5} />
+                    </div>
+                    <span class="font-medium text-stone-900 dark:text-stone-100 truncate">
+                      {screenDesign.name}
+                    </span>
                   </div>
-                  <span className="font-medium text-stone-900 dark:text-stone-100 truncate">
-                    {screenDesign.name}
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-stone-400 dark:text-stone-500 shrink-0" strokeWidth={1.5} />
-              </Link>
-            </li>
-          ))}
+                  <ChevronRight class="w-4 h-4 text-stone-400 dark:text-stone-500 shrink-0" stroke-width={1.5} />
+                </A>
+              </li>
+            )}
+          </For>
         </ul>
       </CardContent>
     </Card>

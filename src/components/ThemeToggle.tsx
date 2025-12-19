@@ -1,43 +1,46 @@
-import { useState, useEffect } from 'react'
-import { Moon, Sun } from 'lucide-react'
+import { createSignal, createEffect, onMount, onCleanup } from 'solid-js'
+import { Moon, Sun } from 'lucide-solid'
 import { Button } from '@/components/ui/button'
 
 type Theme = 'light' | 'dark' | 'system'
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('theme') as Theme) || 'system'
-    }
-    return 'system'
+  const [theme, setTheme] = createSignal<Theme>('system')
+
+  // Initialize from localStorage on mount
+  onMount(() => {
+    const stored = localStorage.getItem('theme') as Theme
+    if (stored) setTheme(stored)
   })
 
-  useEffect(() => {
+  // Apply theme changes
+  createEffect(() => {
+    const currentTheme = theme()
     const root = document.documentElement
 
-    const applyTheme = (theme: Theme) => {
-      if (theme === 'system') {
+    const applyTheme = (t: Theme) => {
+      if (t === 'system') {
         const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         root.classList.toggle('dark', systemDark)
       } else {
-        root.classList.toggle('dark', theme === 'dark')
+        root.classList.toggle('dark', t === 'dark')
       }
     }
 
-    applyTheme(theme)
-    localStorage.setItem('theme', theme)
+    applyTheme(currentTheme)
+    localStorage.setItem('theme', currentTheme)
 
     // Listen for system theme changes when in system mode
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleChange = () => {
-      if (theme === 'system') {
+      if (theme() === 'system') {
         applyTheme('system')
       }
     }
     mediaQuery.addEventListener('change', handleChange)
 
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme])
+    onCleanup(() => mediaQuery.removeEventListener('change', handleChange))
+  })
 
   const toggleTheme = () => {
     setTheme((prev) => {
@@ -47,20 +50,22 @@ export function ThemeToggle() {
     })
   }
 
-  const isDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const isDark = () =>
+    theme() === 'dark' ||
+    (theme() === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="w-8 h-8 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100"
-      title={`Theme: ${theme}`}
+      class="w-8 h-8 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100"
+      title={`Theme: ${theme()}`}
     >
-      {isDark ? (
-        <Moon className="w-4 h-4" strokeWidth={1.5} />
+      {isDark() ? (
+        <Moon class="w-4 h-4" stroke-width={1.5} />
       ) : (
-        <Sun className="w-4 h-4" strokeWidth={1.5} />
+        <Sun class="w-4 h-4" stroke-width={1.5} />
       )}
     </Button>
   )

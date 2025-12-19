@@ -14,7 +14,10 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "jsx": "react-jsx",
+
+    /* SolidJS JSX */
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
 
     /* Linting */
     "strict": true,

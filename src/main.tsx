@@ -1,11 +1,13 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { RouterProvider } from 'react-router-dom'
+import { render } from 'solid-js/web'
+import { Suspense } from 'solid-js'
+import { AppRouter } from '@/lib/router'
 import './index.css'
-import { router } from '@/lib/router'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>,
+render(
+  () => (
+    <Suspense fallback={<div class="min-h-screen flex items-center justify-center text-stone-500">Loading...</div>}>
+      <AppRouter />
+    </Suspense>
+  ),
+  document.getElementById('root')!
 )

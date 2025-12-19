@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { createMemo, Show } from 'solid-js'
+import { useNavigate } from '@solidjs/router'
 import { loadProductData } from '@/lib/product-loader'
 import { AppLayout } from '@/components/AppLayout'
 import { EmptyState } from '@/components/EmptyState'
@@ -37,60 +37,58 @@ function getProductPageStepStatuses(
   return statuses
 }
 
-export function ProductPage() {
+export default function ProductPage() {
   const navigate = useNavigate()
-  const productData = useMemo(() => loadProductData(), [])
+  const productData = createMemo(() => loadProductData())
 
-  const hasOverview = !!productData.overview
-  const hasRoadmap = !!productData.roadmap
-  const allStepsComplete = hasOverview && hasRoadmap
+  const hasOverview = () => !!productData().overview
+  const hasRoadmap = () => !!productData().roadmap
+  const allStepsComplete = () => hasOverview() && hasRoadmap()
 
-  const stepStatuses = getProductPageStepStatuses(hasOverview, hasRoadmap)
+  const stepStatuses = () => getProductPageStepStatuses(hasOverview(), hasRoadmap())
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div class="space-y-6">
         {/* Page intro */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
+        <div class="mb-8">
+          <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
             Product Definition
           </h1>
-          <p className="text-stone-600 dark:text-stone-400">
+          <p class="text-stone-600 dark:text-stone-400">
             Define your product vision and break it into development sections.
           </p>
         </div>
 
         {/* Step 1: Product Vision */}
         <div id="step-overview">
-          <StepIndicator step={1} status={stepStatuses[0]}>
-            {productData.overview ? (
-              <ProductOverviewCard overview={productData.overview} />
-            ) : (
-              <EmptyState type="overview" />
-            )}
+          <StepIndicator step={1} status={stepStatuses()[0]}>
+            <Show when={productData().overview} fallback={<EmptyState type="overview" />}>
+              {(overview) => <ProductOverviewCard overview={overview()} />}
+            </Show>
           </StepIndicator>
         </div>
 
         {/* Step 2: Roadmap / Sections Definition */}
         <div id="step-roadmap">
-          <StepIndicator step={2} status={stepStatuses[1]} isLast={!allStepsComplete}>
-            {productData.roadmap ? (
-              <SectionsCard
-                roadmap={productData.roadmap}
-                onSectionClick={(sectionId) => navigate(`/sections/${sectionId}`)}
-              />
-            ) : (
-              <EmptyState type="roadmap" />
-            )}
+          <StepIndicator step={2} status={stepStatuses()[1]} isLast={!allStepsComplete()}>
+            <Show when={productData().roadmap} fallback={<EmptyState type="roadmap" />}>
+              {(roadmap) => (
+                <SectionsCard
+                  roadmap={roadmap()}
+                  onSectionClick={(sectionId) => navigate(`/sections/${sectionId}`)}
+                />
+              )}
+            </Show>
           </StepIndicator>
         </div>
 
         {/* Next Phase Button - shown when all steps complete */}
-        {allStepsComplete && (
+        <Show when={allStepsComplete()}>
           <StepIndicator step={3} status="current" isLast>
             <NextPhaseButton nextPhase="data-model" />
           </StepIndicator>
-        )}
+        </Show>
       </div>
     </AppLayout>
   )

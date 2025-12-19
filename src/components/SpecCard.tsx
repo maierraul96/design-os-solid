@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { createSignal, Show, For } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { ChevronDown, PanelTop, Square } from 'lucide-react'
+import { ChevronDown, PanelTop, Square } from 'lucide-solid'
 import { EmptyState } from '@/components/EmptyState'
 import type { ParsedSpec } from '@/types/section'
 
@@ -10,107 +10,111 @@ interface SpecCardProps {
   sectionTitle?: string
 }
 
-export function SpecCard({ spec, sectionTitle }: SpecCardProps) {
-  const [userFlowsOpen, setUserFlowsOpen] = useState(false)
-  const [uiReqOpen, setUiReqOpen] = useState(false)
+export function SpecCard(props: SpecCardProps) {
+  const [userFlowsOpen, setUserFlowsOpen] = createSignal(false)
+  const [uiReqOpen, setUiReqOpen] = createSignal(false)
 
   // Empty state
-  if (!spec) {
+  if (!props.spec) {
     return <EmptyState type="spec" />
   }
 
   return (
-    <Card className="border-stone-200 dark:border-stone-700 shadow-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-          {sectionTitle || 'Specification'}
+    <Card class="border-stone-200 dark:border-stone-700 shadow-sm">
+      <CardHeader class="pb-4">
+        <CardTitle class="text-lg font-semibold text-stone-900 dark:text-stone-100">
+          {props.sectionTitle || 'Specification'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent class="space-y-4">
         {/* Overview */}
-        {spec.overview && (
-          <p className="text-stone-600 dark:text-stone-400 leading-relaxed">
-            {spec.overview}
+        <Show when={props.spec.overview}>
+          <p class="text-stone-600 dark:text-stone-400 leading-relaxed">
+            {props.spec.overview}
           </p>
-        )}
+        </Show>
 
         {/* User Flows - Expandable */}
-        {spec.userFlows.length > 0 && (
-          <Collapsible open={userFlowsOpen} onOpenChange={setUserFlowsOpen}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-left group">
-              <span className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">
+        <Show when={props.spec.userFlows.length > 0}>
+          <Collapsible open={userFlowsOpen()} onOpenChange={setUserFlowsOpen}>
+            <CollapsibleTrigger class="flex items-center justify-between w-full py-2 text-left group">
+              <span class="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">
                 User Flows
-                <span className="ml-2 text-stone-400 dark:text-stone-500 normal-case tracking-normal">
-                  ({spec.userFlows.length})
+                <span class="ml-2 text-stone-400 dark:text-stone-500 normal-case tracking-normal">
+                  ({props.spec.userFlows.length})
                 </span>
               </span>
               <ChevronDown
-                className={`w-4 h-4 text-stone-400 dark:text-stone-500 transition-transform ${
-                  userFlowsOpen ? 'rotate-180' : ''
+                class={`w-4 h-4 text-stone-400 dark:text-stone-500 transition-transform ${
+                  userFlowsOpen() ? 'rotate-180' : ''
                 }`}
-                strokeWidth={1.5}
+                stroke-width={1.5}
               />
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <ul className="space-y-2 pt-2">
-                {spec.userFlows.map((flow, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-stone-900 dark:bg-stone-100 mt-2 shrink-0" />
-                    <span className="text-stone-700 dark:text-stone-300 text-sm">
-                      {flow}
-                    </span>
-                  </li>
-                ))}
+              <ul class="space-y-2 pt-2">
+                <For each={props.spec.userFlows}>
+                  {(flow) => (
+                    <li class="flex items-start gap-3">
+                      <span class="w-1.5 h-1.5 rounded-full bg-stone-900 dark:bg-stone-100 mt-2 shrink-0" />
+                      <span class="text-stone-700 dark:text-stone-300 text-sm">
+                        {flow}
+                      </span>
+                    </li>
+                  )}
+                </For>
               </ul>
             </CollapsibleContent>
           </Collapsible>
-        )}
+        </Show>
 
         {/* UI Requirements - Expandable */}
-        {spec.uiRequirements.length > 0 && (
-          <Collapsible open={uiReqOpen} onOpenChange={setUiReqOpen}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-left group">
-              <span className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">
+        <Show when={props.spec.uiRequirements.length > 0}>
+          <Collapsible open={uiReqOpen()} onOpenChange={setUiReqOpen}>
+            <CollapsibleTrigger class="flex items-center justify-between w-full py-2 text-left group">
+              <span class="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">
                 UI Requirements
-                <span className="ml-2 text-stone-400 dark:text-stone-500 normal-case tracking-normal">
-                  ({spec.uiRequirements.length})
+                <span class="ml-2 text-stone-400 dark:text-stone-500 normal-case tracking-normal">
+                  ({props.spec.uiRequirements.length})
                 </span>
               </span>
               <ChevronDown
-                className={`w-4 h-4 text-stone-400 dark:text-stone-500 transition-transform ${
-                  uiReqOpen ? 'rotate-180' : ''
+                class={`w-4 h-4 text-stone-400 dark:text-stone-500 transition-transform ${
+                  uiReqOpen() ? 'rotate-180' : ''
                 }`}
-                strokeWidth={1.5}
+                stroke-width={1.5}
               />
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <ul className="space-y-2 pt-2">
-                {spec.uiRequirements.map((req, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-stone-900 dark:bg-stone-100 mt-2 shrink-0" />
-                    <span className="text-stone-700 dark:text-stone-300 text-sm">
-                      {req}
-                    </span>
-                  </li>
-                ))}
+              <ul class="space-y-2 pt-2">
+                <For each={props.spec.uiRequirements}>
+                  {(req) => (
+                    <li class="flex items-start gap-3">
+                      <span class="w-1.5 h-1.5 rounded-full bg-stone-900 dark:bg-stone-100 mt-2 shrink-0" />
+                      <span class="text-stone-700 dark:text-stone-300 text-sm">
+                        {req}
+                      </span>
+                    </li>
+                  )}
+                </For>
               </ul>
             </CollapsibleContent>
           </Collapsible>
-        )}
+        </Show>
 
         {/* Display Configuration */}
-        <div className="flex items-center gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
-          {spec.useShell ? (
+        <div class="flex items-center gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+          {props.spec.useShell ? (
             <>
-              <PanelTop className="w-4 h-4 text-stone-400 dark:text-stone-500" strokeWidth={1.5} />
-              <span className="text-sm text-stone-500 dark:text-stone-400">
+              <PanelTop class="w-4 h-4 text-stone-400 dark:text-stone-500" stroke-width={1.5} />
+              <span class="text-sm text-stone-500 dark:text-stone-400">
                 Displays inside app shell
               </span>
             </>
           ) : (
             <>
-              <Square className="w-4 h-4 text-stone-400 dark:text-stone-500" strokeWidth={1.5} />
-              <span className="text-sm text-stone-500 dark:text-stone-400">
+              <Square class="w-4 h-4 text-stone-400 dark:text-stone-500" stroke-width={1.5} />
+              <span class="text-sm text-stone-500 dark:text-stone-400">
                 Standalone page (no shell)
               </span>
             </>

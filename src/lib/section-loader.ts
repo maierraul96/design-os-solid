@@ -8,7 +8,7 @@
  */
 
 import type { SectionData, ParsedSpec, ScreenDesignInfo, ScreenshotInfo } from '@/types/section'
-import type { ComponentType } from 'react'
+import type { Component } from 'solid-js'
 
 // Load spec.md files from product/sections at build time
 const specFiles = import.meta.glob('/product/sections/*/spec.md', {
@@ -25,7 +25,7 @@ const dataFiles = import.meta.glob('/product/sections/*/data.json', {
 // Load screen design components from src/sections lazily
 const screenDesignModules = import.meta.glob('/src/sections/*/*.tsx') as Record<
   string,
-  () => Promise<{ default: ComponentType }>
+  () => Promise<{ default: Component }>
 >
 
 // Load screenshot files from product/sections at build time
@@ -194,7 +194,7 @@ export function getSectionScreenshots(sectionId: string): ScreenshotInfo[] {
 export function loadScreenDesignComponent(
   sectionId: string,
   screenDesignName: string
-): (() => Promise<{ default: ComponentType }>) | null {
+): (() => Promise<{ default: Component }>) | null {
   const path = `/src/sections/${sectionId}/${screenDesignName}.tsx`
   return screenDesignModules[path] || null
 }
