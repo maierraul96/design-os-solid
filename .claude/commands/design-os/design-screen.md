@@ -1,6 +1,13 @@
 # Design Screen
 
-You are helping the user create a screen design for a section of their product. The screen design will be a props-based React component that can be exported and integrated into any React codebase.
+You are helping the user create a screen design for a section of their product. The screen design will be a props-based **SolidJS** component that can be exported and integrated into any SolidJS codebase.
+
+**IMPORTANT: This project uses SolidJS, NOT React.** Key differences:
+- Use `class` instead of `className` for CSS classes
+- Use `onClick` (same as React) but event handlers work differently
+- Use SolidJS primitives: `createSignal`, `Show`, `For`, `createMemo`, etc.
+- Import from `solid-js` not `react`
+- **CRITICAL: Always use optional chaining when accessing props** (e.g., `props?.children`, `props?.user`) because props may be undefined when components are dynamically loaded by Design OS
 
 ## Step 1: Check Prerequisites
 
@@ -94,35 +101,38 @@ The component MUST:
 Example:
 
 ```tsx
+import { For } from 'solid-js'
 import type { InvoiceListProps } from '@/../product/sections/[section-id]/types'
 
-export function InvoiceList({
-  invoices,
-  onView,
-  onEdit,
-  onDelete,
-  onCreate
-}: InvoiceListProps) {
+export function InvoiceList(props: InvoiceListProps) {
   return (
-    <div className="max-w-4xl mx-auto">
+    <div class="max-w-4xl mx-auto">
       {/* Component content here */}
 
       {/* Example: Using a callback */}
-      <button onClick={onCreate}>Create Invoice</button>
+      <button onClick={() => props.onCreate?.()}>Create Invoice</button>
 
-      {/* Example: Mapping data with callbacks */}
-      {invoices.map(invoice => (
-        <div key={invoice.id}>
-          <span>{invoice.clientName}</span>
-          <button onClick={() => onView?.(invoice.id)}>View</button>
-          <button onClick={() => onEdit?.(invoice.id)}>Edit</button>
-          <button onClick={() => onDelete?.(invoice.id)}>Delete</button>
-        </div>
-      ))}
+      {/* Example: Mapping data with For (SolidJS) */}
+      <For each={props.invoices}>
+        {(invoice) => (
+          <div>
+            <span>{invoice.clientName}</span>
+            <button onClick={() => props.onView?.(invoice.id)}>View</button>
+            <button onClick={() => props.onEdit?.(invoice.id)}>Edit</button>
+            <button onClick={() => props.onDelete?.(invoice.id)}>Delete</button>
+          </div>
+        )}
+      </For>
     </div>
   )
 }
 ```
+
+**SolidJS Notes:**
+- Use `props.fieldName` to access props (don't destructure in function signature for reactivity)
+- Use `<For each={...}>` instead of `.map()` for reactive lists
+- Use `class` instead of `className`
+- No `key` prop needed with `<For>` — SolidJS handles this automatically
 
 ### Design Requirements
 
@@ -179,17 +189,17 @@ interface InvoiceRowProps {
   onDelete?: () => void
 }
 
-export function InvoiceRow({ invoice, onView, onEdit, onDelete }: InvoiceRowProps) {
+export function InvoiceRow(props: InvoiceRowProps) {
   return (
-    <div className="flex items-center justify-between p-4 border-b">
+    <div class="flex items-center justify-between p-4 border-b">
       <div>
-        <p className="font-medium">{invoice.clientName}</p>
-        <p className="text-sm text-stone-500">{invoice.invoiceNumber}</p>
+        <p class="font-medium">{props.invoice.clientName}</p>
+        <p class="text-sm text-stone-500">{props.invoice.invoiceNumber}</p>
       </div>
-      <div className="flex gap-2">
-        <button onClick={onView}>View</button>
-        <button onClick={onEdit}>Edit</button>
-        <button onClick={onDelete}>Delete</button>
+      <div class="flex gap-2">
+        <button onClick={() => props.onView?.()}>View</button>
+        <button onClick={() => props.onEdit?.()}>Edit</button>
+        <button onClick={() => props.onDelete?.()}>Delete</button>
       </div>
     </div>
   )
@@ -199,20 +209,22 @@ export function InvoiceRow({ invoice, onView, onEdit, onDelete }: InvoiceRowProp
 Then import and use in the main component:
 
 ```tsx
+import { For } from 'solid-js'
 import { InvoiceRow } from './InvoiceRow'
 
-export function InvoiceList({ invoices, onView, onEdit, onDelete }: InvoiceListProps) {
+export function InvoiceList(props: InvoiceListProps) {
   return (
     <div>
-      {invoices.map(invoice => (
-        <InvoiceRow
-          key={invoice.id}
-          invoice={invoice}
-          onView={() => onView?.(invoice.id)}
-          onEdit={() => onEdit?.(invoice.id)}
-          onDelete={() => onDelete?.(invoice.id)}
-        />
-      ))}
+      <For each={props.invoices}>
+        {(invoice) => (
+          <InvoiceRow
+            invoice={invoice}
+            onView={() => props.onView?.(invoice.id)}
+            onEdit={() => props.onEdit?.(invoice.id)}
+            onDelete={() => props.onDelete?.(invoice.id)}
+          />
+        )}
+      </For>
     </div>
   )
 }
@@ -307,3 +319,13 @@ If the spec indicates additional views are needed:
 - Sub-components should also be props-based for maximum portability
 - Apply design tokens when available for consistent branding
 - Screen designs render inside the shell when viewed in Design OS (if shell exists)
+
+### SolidJS-Specific Requirements
+
+- **Use `class` instead of `className`** for CSS classes
+- **Use `props.fieldName`** to access props — avoid destructuring in function signature
+- **Use `<For each={...}>` and `<Show when={...}>`** instead of `.map()` and ternaries
+- **CRITICAL: Use optional chaining on props** (`props?.children`, `props?.user`) — props may be undefined when Design OS dynamically loads components
+- **Use `createSignal` for local state** — `const [value, setValue] = createSignal(initialValue)`
+- **Import from `solid-js`** — not `react`
+- **Use `lucide-solid`** for icons — not `lucide-react`

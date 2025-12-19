@@ -2,6 +2,13 @@
 
 You are helping the user design the application shell — the persistent navigation and layout that wraps all sections. This is a screen design, not implementation code.
 
+**IMPORTANT: This project uses SolidJS, NOT React.** Key differences:
+- Use `class` instead of `className` for CSS classes
+- Use SolidJS primitives: `createSignal`, `Show`, `For`, `createMemo`, etc.
+- Import from `solid-js` not `react`
+- Use `lucide-solid` for icons, not `lucide-react`
+- **CRITICAL: Always use optional chaining when accessing props** (e.g., `props?.children`, `props?.navigationItems ?? []`) because props may be undefined when components are dynamically loaded by Design OS
+
 ## Step 1: Check Prerequisites
 
 First, verify prerequisites exist:
@@ -118,15 +125,66 @@ Create `/product/shell/spec.md`:
 Create the shell components at `src/shell/components/`:
 
 ### AppShell.tsx
-The main wrapper component that accepts children and provides the layout structure.
+The main wrapper component that accepts children and provides the layout structure. **MUST be a default export.**
 
 ```tsx
-interface AppShellProps {
-  children: React.ReactNode
+import { Show, type JSX } from 'solid-js'
+
+export interface AppShellProps {
+  children?: JSX.Element
   navigationItems: Array<{ label: string; href: string; isActive?: boolean }>
   user?: { name: string; avatarUrl?: string }
   onNavigate?: (href: string) => void
   onLogout?: () => void
+}
+
+export default function AppShell(props: AppShellProps) {
+  // CRITICAL: Use optional chaining on all props accesses
+  return (
+    <div class="min-h-screen">
+      <MainNav items={props?.navigationItems ?? []} onNavigate={props?.onNavigate} />
+      <Show when={props?.user}>
+        <UserMenu user={props?.user!} onLogout={props?.onLogout} />
+      </Show>
+      <main>{props?.children}</main>
+    </div>
+  )
+}
+```
+
+### ShellWrapper.tsx (REQUIRED)
+**This component is required for Design OS to wrap screen designs inside the shell.** It provides default navigation and user data so screen designs can be previewed in context.
+
+```tsx
+import { type JSX } from 'solid-js'
+import AppShell from './AppShell'
+
+export interface ShellWrapperProps {
+  children?: JSX.Element
+}
+
+const defaultNavigationItems = [
+  { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Section 1', href: '/section-1', isActive: true },
+  // ... add all navigation items from spec
+]
+
+const defaultUser = {
+  name: 'Demo User',
+  email: 'demo@example.com',
+}
+
+export default function ShellWrapper(props: ShellWrapperProps) {
+  return (
+    <AppShell
+      navigationItems={defaultNavigationItems}
+      user={defaultUser}
+      onNavigate={(href) => console.log('Navigate to:', href)}
+      onLogout={() => console.log('Logout clicked')}
+    >
+      {props?.children}
+    </AppShell>
+  )
 }
 ```
 
@@ -137,46 +195,66 @@ The navigation component (sidebar or top nav based on the chosen pattern).
 The user menu with avatar and dropdown.
 
 ### index.ts
-Export all components.
+Export all components:
+
+```tsx
+export { default as AppShell, type AppShellProps } from './AppShell'
+export { default as ShellWrapper, type ShellWrapperProps } from './ShellWrapper'
+export { MainNav, type NavigationItem } from './MainNav'
+export { UserMenu, type UserMenuProps } from './UserMenu'
+```
 
 **Component Requirements:**
 - Use props for all data and callbacks (portable)
+- **Use optional chaining on ALL props accesses** (`props?.children`, `props?.navigationItems ?? []`)
+- **AppShell and ShellWrapper MUST be default exports**
 - Apply design tokens if they exist (colors, fonts)
 - Support light and dark mode with `dark:` variants
 - Be mobile responsive
 - Use Tailwind CSS for styling
-- Use lucide-react for icons
+- Use `lucide-solid` for icons (NOT lucide-react)
 
 ## Step 7: Create Shell Preview
 
 Create `src/shell/ShellPreview.tsx` — a preview wrapper for viewing the shell in Design OS:
 
 ```tsx
-import data from '@/../product/sections/[first-section]/data.json' // if exists
-import { AppShell } from './components/AppShell'
+import { createSignal } from 'solid-js'
+import AppShell from './components/AppShell'
+import type { NavigationItem } from './components/MainNav'
+
+const navigationItems: NavigationItem[] = [
+  { label: '[Section 1]', href: '/section-1', isActive: true },
+  { label: '[Section 2]', href: '/section-2' },
+  { label: '[Section 3]', href: '/section-3' },
+]
+
+const sampleUser = {
+  name: 'Alex Morgan',
+  avatarUrl: undefined,
+}
 
 export default function ShellPreview() {
-  const navigationItems = [
-    { label: '[Section 1]', href: '/section-1', isActive: true },
-    { label: '[Section 2]', href: '/section-2' },
-    { label: '[Section 3]', href: '/section-3' },
-  ]
+  const [activeHref, setActiveHref] = createSignal('/section-1')
 
-  const user = {
-    name: 'Alex Morgan',
-    avatarUrl: undefined,
-  }
+  const itemsWithActive = () => navigationItems.map((item) => ({
+    ...item,
+    isActive: item.href === activeHref(),
+  }))
 
   return (
     <AppShell
-      navigationItems={navigationItems}
-      user={user}
-      onNavigate={(href) => console.log('Navigate to:', href)}
+      navigationItems={itemsWithActive()}
+      user={sampleUser}
+      onNavigate={(href) => {
+        setActiveHref(href)
+        console.log('Navigate to:', href)
+      }}
       onLogout={() => console.log('Logout')}
     >
-      <div className="p-8">
-        <h1 className="text-2xl font-bold mb-4">Content Area</h1>
-        <p className="text-stone-600 dark:text-stone-400">
+      <div class="p-8">
+        <h1 class="text-2xl font-bold mb-4">Content Area</h1>
+        <p class="text-stone-600 dark:text-stone-400">
           Section content will render here.
         </p>
       </div>
@@ -209,7 +287,8 @@ Let the user know:
 
 **Created files:**
 - `/product/shell/spec.md` — Shell specification
-- `src/shell/components/AppShell.tsx` — Main shell wrapper
+- `src/shell/components/AppShell.tsx` — Main shell wrapper (default export)
+- `src/shell/components/ShellWrapper.tsx` — Design OS wrapper (default export, REQUIRED)
 - `src/shell/components/MainNav.tsx` — Navigation component
 - `src/shell/components/UserMenu.tsx` — User menu component
 - `src/shell/components/index.ts` — Component exports
@@ -236,3 +315,14 @@ Next: Run `/shape-section` to start designing your first section."
 - Apply design tokens when available for consistent styling
 - Keep the shell focused on navigation chrome — no authentication UI
 - Section screen designs will render inside the shell's content area
+
+### SolidJS-Specific Requirements
+
+- **Use `class` instead of `className`** for CSS classes
+- **Use `props.fieldName`** to access props — avoid destructuring in function signature
+- **CRITICAL: Use optional chaining on ALL props** (`props?.children`, `props?.navigationItems ?? []`) — props may be undefined when Design OS dynamically loads components
+- **AppShell and ShellWrapper MUST be default exports** — Design OS requires this for dynamic loading
+- **ShellWrapper.tsx is REQUIRED** — Design OS looks for this component first to wrap screen designs
+- **Use `createSignal` for local state** — `const [value, setValue] = createSignal(initialValue)`
+- **Import from `solid-js`** — not `react`
+- **Use `lucide-solid`** for icons — not `lucide-react`
